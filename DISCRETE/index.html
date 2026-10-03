@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dijkstra's Algorithm — Interactive Shortest Path Visualizer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="cursor-ring" aria-hidden="true"></div><div id="cursor-dot" aria-hidden="true"></div>
+
+<nav id="nav" aria-label="Main navigation">
+  <button data-target="home" class="active">HOME</button>
+  <button data-target="algorithm">ALGORITHM</button>
+  <button data-target="visualizer">VISUALIZER</button>
+  <button data-target="examples">EXAMPLES</button>
+  <button data-target="complexity">COMPLEXITY</button>
+  <button data-target="about">ABOUT</button>
+</nav>
+
+<header id="home" class="hero">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <h1>DIJKSTRA'S ALGORITHM</h1>
+    <p class="sub">Find the shortest path. Visualize every decision.</p>
+    <p class="lead">An interactive website that demonstrates Dijkstra's shortest path algorithm on weighted graphs. Build a graph, pick two nodes, and watch each distance update step by step.</p>
+    <div class="btn-row">
+      <button class="btn primary" data-target="algorithm">EXPLORE ALGORITHM</button>
+      <button class="btn" data-target="visualizer">START VISUALIZATION</button>
+    </div>
+    <div class="chips"><span class="glass">Shortest Path</span><span class="glass">Weighted Graph</span><span class="glass">Greedy Algorithm</span></div>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">scroll ↓</div>
+</header>
+
+<main>
+<section id="algorithm">
+  <h2>What is Dijkstra's algorithm?</h2>
+  <p class="wide">Dijkstra's algorithm finds the shortest path from one source node to every other node in a weighted graph. It always settles the closest unvisited node next, which makes it a greedy algorithm. It was published by Edsger W. Dijkstra in 1959.</p>
+  <div class="cards three">
+    <div class="card" tabindex="0"><h3>GPS and maps</h3><p>Finds the fastest route between two places on a road network.</p></div>
+    <div class="card" tabindex="0"><h3>Network routing</h3><p>Protocols such as OSPF and IS-IS use it to route internet traffic.</p></div>
+    <div class="card" tabindex="0"><h3>Transport and games</h3><p>Plans transit journeys and moves game characters across maps.</p></div>
+  </div>
+  <p class="warn glass">Dijkstra's algorithm does not work correctly with negative edge weights. It requires every weight to be non-negative.</p>
+
+  <h2>How the algorithm works</h2>
+  <div class="how">
+    <ol id="steps">
+      <li><button data-step="0">Choose a source node.</button></li>
+      <li><button data-step="1">Set the source distance to 0.</button></li>
+      <li><button data-step="2">Set all other distances to infinity.</button></li>
+      <li><button data-step="3">Select the unvisited node with the smallest tentative distance.</button></li>
+      <li><button data-step="4">Relax its neighboring edges.</button></li>
+      <li><button data-step="5">Mark the node as visited.</button></li>
+      <li><button data-step="6">Repeat until the destination is reached or all reachable nodes are processed.</button></li>
+      <li><button data-step="7">Reconstruct the shortest path from the predecessors.</button></li>
+    </ol>
+    <div class="glass mini">
+      <svg viewBox="0 0 300 240" role="img" aria-label="Small example graph">
+        <g class="me"><line id="e-AB" x1="40" y1="120" x2="140" y2="40"/><line id="e-AC" x1="40" y1="120" x2="140" y2="200"/><line id="e-BD" x1="140" y1="40" x2="260" y2="120"/><line id="e-CD" x1="140" y1="200" x2="260" y2="120"/><line id="e-BC" x1="140" y1="40" x2="140" y2="200"/></g>
+        <g class="mn"><circle id="n-A" cx="40" cy="120" r="20"/><circle id="n-B" cx="140" cy="40" r="20"/><circle id="n-C" cx="140" cy="200" r="20"/><circle id="n-D" cx="260" cy="120" r="20"/></g>
+        <g class="ml"><text x="40" y="125">A</text><text x="140" y="45">B</text><text x="140" y="205">C</text><text x="260" y="125">D</text></g>
+      </svg>
+      <p id="stepText">Select a step to see it on the graph.</p>
+    </div>
+  </div>
+
+  <h2>Pseudocode</h2>
+<pre class="code glass"><span class="k">DIJKSTRA</span>(Graph, Source):
+    distance[source] = <span class="n">0</span>
+    <span class="k">for</span> every vertex:
+        distance[vertex] = <span class="n">infinity</span>
+        previous[vertex] = <span class="n">null</span>
+    <span class="k">while</span> unvisited vertices remain:
+        u = vertex with minimum distance
+        mark u as visited
+        <span class="k">for</span> each neighbor v of u:
+            newDistance = distance[u] + weight(u, v)
+            <span class="k">if</span> newDistance &lt; distance[v]:
+                distance[v] = newDistance
+                previous[v] = u
+    <span class="k">return</span> distance and previous</pre>
+</section>
+
+<section id="visualizer">
+  <h2>Interactive visualizer</h2>
+  <p class="wide">Pick a tool, then use the graph. Move tool: drag nodes, click a node to set the source, Shift-click to set the destination, click an edge to give it the weight in the box.</p>
+  <div class="toolbar glass" role="toolbar" aria-label="Graph tools">
+    <button class="btn tool active" data-mode="move">MOVE</button>
+    <button class="btn tool" data-mode="node">ADD NODE</button>
+    <button class="btn tool" data-mode="edge">ADD EDGE</button>
+    <button class="btn tool" data-mode="delete">DELETE</button>
+    <label>Weight <input id="weight" type="number" min="0" step="any" value="5"></label>
+    <label>Source <select id="srcSel"></select></label>
+    <label>Destination <select id="dstSel"></select></label>
+    <label>Example <select id="exSel"><option value="1">1 — 5 nodes</option><option value="2">2 — 7 nodes</option><option value="3">3 — 10 nodes</option></select></label>
+    <button class="btn" id="loadBtn">LOAD EXAMPLE</button>
+    <button class="btn" id="randBtn">RANDOM GRAPH</button>
+    <button class="btn" id="clearBtn">CLEAR GRAPH</button>
+  </div>
+  <div class="toolbar glass" role="toolbar" aria-label="Playback">
+    <button class="btn primary" id="runBtn">RUN DIJKSTRA</button>
+    <button class="btn" id="playBtn">PLAY</button>
+    <button class="btn" id="pauseBtn">PAUSE</button>
+    <button class="btn" id="stepBtn">STEP</button>
+    <button class="btn" id="resetBtn">RESET</button>
+    <label>Speed <span class="tiny">SLOW</span><input id="speed" type="range" min="1" max="3" value="2" aria-label="Animation speed"><span class="tiny">FAST</span></label>
+  </div>
+  <p id="msg" role="status" aria-live="polite"></p>
+
+  <div id="printArea">
+    <div class="glass graphbox"><svg id="graph" viewBox="0 0 800 480" role="img" aria-label="Interactive graph"></svg></div>
+    <div class="legend"><span><i style="background:#00e5a0"></i>Source</span><span><i style="background:#ff4d8d"></i>Destination</span><span><i style="background:#ffb020"></i>Current</span><span><i style="background:#7c4dff"></i>Visited</span><span><i style="background:#00e5ff"></i>Path</span><span><i style="background:#1b2a4a"></i>Normal</span></div>
+    <div class="glass explain"><b>Live explanation:</b> <span id="explain">Run Dijkstra to see each decision explained here.</span></div>
+    <div class="stats">
+      <div class="glass"><small>Nodes</small><b id="sNodes">0</b></div><div class="glass"><small>Edges</small><b id="sEdges">0</b></div>
+      <div class="glass"><small>Visited nodes</small><b id="sVisited">0</b></div><div class="glass"><small>Current distance</small><b id="sCur">—</b></div>
+      <div class="glass"><small>Shortest distance</small><b id="sShort">—</b></div>
+    </div>
+    <div class="terminal">
+      <h3>RESULT</h3>
+      <div>Source: <b id="rSrc">—</b></div><div>Destination: <b id="rDst">—</b></div>
+      <div>Shortest Distance: <b id="rDist">—</b></div><div>Shortest Path: <b id="rPath">—</b></div>
+      <div>Nodes Visited: <b id="rVis">—</b></div><div>Edges Examined: <b id="rEx">—</b></div><div>Execution Time: <b id="rTime">—</b></div>
+      <div class="btn-row no-print"><button class="btn" id="printBtn">PRINT RESULT</button><button class="btn" id="dlBtn">DOWNLOAD RESULT</button><button class="btn" id="imgBtn">DOWNLOAD GRAPH (PNG)</button></div>
+    </div>
+    <div class="terminal">
+      <h3>EXECUTION OUTPUT</h3>
+      <pre id="log" aria-live="polite">No runs yet.</pre>
+      <div class="btn-row no-print"><button class="btn" id="copyBtn">COPY OUTPUT</button><button class="btn" id="clearLogBtn">CLEAR OUTPUT</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="examples">
+  <h2>Example graphs</h2>
+  <p class="wide">Select an example to load it into the visualizer. The shortest path is computed by the algorithm, not stored.</p>
+  <div class="cards three">
+    <button class="card" data-ex="1"><h3>Example 1</h3><p>5 nodes (A–E), 7 edges. Source A, destination E.</p></button>
+    <button class="card" data-ex="2"><h3>Example 2</h3><p>7 nodes (A–G), 11 edges. Source A, destination G.</p></button>
+    <button class="card" data-ex="3"><h3>Example 3</h3><p>10 nodes (A–J), 15 edges. Source A, destination J.</p></button>
+  </div>
+</section>
+
+<section id="complexity">
+  <h2>Complexity</h2>
+  <div class="cards three">
+    <div class="card" tabindex="0"><h3>O(V²)</h3><p>Time with the simple array implementation: scan all vertices to find the minimum, V times.</p></div>
+    <div class="card" tabindex="0"><h3>O((V + E) log V)</h3><p>Time with a priority queue (min-heap), which this project uses.</p></div>
+    <div class="card" tabindex="0"><h3>O(V + E)</h3><p>Space for the adjacency list, distances, and predecessors.</p></div>
+  </div>
+  <p class="wide">V is the number of vertices (nodes). E is the number of edges (connections).</p>
+</section>
+
+<section id="about">
+  <h2>About</h2>
+  <p class="wide">This project was built to show Dijkstra's algorithm with several examples, plotted graphs, and saved program output. Use PRINT RESULT or the download buttons in the visualizer to save your results.</p>
+</section>
+</main>
+
+<footer><p>Interactive Dijkstra's Algorithm Visualizer</p><p>Developed for Group Activity</p></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="script.js" defer></script>
+</body>
+</html>
